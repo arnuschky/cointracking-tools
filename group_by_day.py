@@ -100,7 +100,8 @@ with open(sys.argv[1]) as csvfile:
 
 if output:
     with open(sys.argv[2], 'w') as csvfile:
-        csvfile.writelines(header)
+        print(header)
+        csvfile.writelines(','.join(header) + '\n')
         for record in output:
             csvfile.write(str(record) + '\n')
 
