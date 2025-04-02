@@ -97,47 +97,46 @@ class Record(object):
                       self.fee_cur, self.exchange, group, comment, self.date, self.tx_id)
 
 
-if len(sys.argv) != 3:
-    print("Usage: {} <csv_in> <csv_out>".format(sys.argv[0]))
-    exit(1)
+def process_csv(input_file, output_file):
+    output = []
+    previous = None
+    header = None
 
+    with open(input_file) as csvfile:
+        csvdata = csv.reader(csvfile, delimiter=',')
 
-output = []
-previous = None
-header = None
+        for row in csvdata:
+            if header is None:
+                header = row
+                continue
 
-with open(sys.argv[1]) as csvfile:
-    csvdata = csv.reader(csvfile, delimiter=',', )
+            record = Record(*row)
+            if previous is None:
+                previous = record
+                continue
 
-    for row in csvdata:
-        if header is None:
-            # keep header for output
-            header = row
-            continue
+            if record == previous:
+                previous += record
+                continue
+            else:
+                output.append(previous)
+                previous = record
 
-        record = Record(*row)
-        if previous is None:
-            # first row, set as previous
-            previous = record
-            continue
+        output.append(previous)
 
-        if record == previous:
-            # new row can be combined with previous
-            previous += record
-            continue
-
+    with open(output_file, 'w') as csvfile:
+        if header is not None:  # Ensure header is not None
+            csvfile.writelines(','.join(header) + '\n')
         else:
-            # can't be combined, adding previous to output then switch over
-            output.append(previous)
-            previous = record
-
-    output.append(previous)
-
-if output:
-    with open(sys.argv[2], 'w') as csvfile:
-        print(header)
-        csvfile.writelines(','.join(header) + '\n')
+            raise ValueError("Header is not initialized properly.")
         for record in output:
             csvfile.write(str(record) + '\n')
 
-print("Exported {} records.".format(len(output)))
+    print("Exported {} records.".format(len(output)))
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: {} <csv_in> <csv_out>".format(sys.argv[0]))
+        exit(1)
+
+    process_csv(sys.argv[1], sys.argv[2])
