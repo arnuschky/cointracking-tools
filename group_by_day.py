@@ -28,22 +28,31 @@ from decimal import Decimal
 
 class Record(object):
 
-    def __init__(self, buyamt, buycur, buyeur, sellamt, sellcur, selleur, exchange, date):
-        self.buyamt = Decimal(buyamt)
+    def __init__(self, record_type, buyamt, buycur, sellamt, sellcur, fee, fee_cur, exchange, group, comment, date, tx_id):
+        self.record_type = record_type
+        self.buyamt = Decimal(buyamt) if buyamt else None
         self.buycur = buycur
-        self.buyeur = Decimal(buyeur)
-        self.sellamt = Decimal(sellamt)
+        self.sellamt = Decimal(sellamt) if sellamt else None
         self.sellcur = sellcur
-        self.selleur = Decimal(selleur)
+        self.fee = Decimal(fee) if fee else None
+        self.fee_cur = fee_cur
         self.exchange = exchange
+        self.group = group
+        self.comment = comment
         self.date = date.strip().split(' ')[0]
+        self.tx_id = tx_id
 
     def __str__(self):
         """
         Exports as csv row.
         """
-        return "{},{},{},{},{},{},{},{}".format(self.buyamt, self.buycur, self.buyeur, self.sellamt,
-                                                self.sellcur, self.selleur, self.exchange, self.date)
+        buyamt_str = str(self.buyamt) if self.buyamt is not None else ''
+        sellamt_str = str(self.sellamt) if self.sellamt is not None else ''
+        fee_str = str(self.fee) if self.fee is not None else ''
+        
+        return "{},{},{},{},{},{},{},{},{},{},{},{}".format(self.record_type, buyamt_str, self.buycur,
+                                                sellamt_str, self.sellcur, fee_str, self.fee_cur,
+                                                self.exchange, self.group, self.comment, self.date, self.tx_id)
 
     def __eq__(self, other):
         """
@@ -56,10 +65,27 @@ class Record(object):
     def __add__(self, other):
         """
         Adds two records by adding amounts only.
+        Populates group and comment if one has a value and the other doesn't.
         """
-        return Record(self.buyamt + other.buyamt, self.buycur, self.buyeur + other.buyeur,
-                      self.sellamt + other.sellamt, self.sellcur, self.selleur + other.selleur,
-                      self.exchange, self.date)
+        group = self.group if self.group else other.group
+        comment = self.comment if self.comment else other.comment
+        
+        # Debugging: Print self and other if any of the amounts are None
+        if self.buyamt is None or other.buyamt is None:
+            print("Debug: self =", self, "other =", other, "buyamt is None")
+        if self.sellamt is None or other.sellamt is None:
+            print("Debug: self =", self, "other =", other, "sellamt is None")
+        if self.fee is None or other.fee is None:
+            print("Debug: self =", self, "other =", other, "fee is None")
+        
+        # Set to None if either is None
+        buyamt_sum = None if self.buyamt is None or other.buyamt is None else (self.buyamt + other.buyamt)
+        sellamt_sum = None if self.sellamt is None or other.sellamt is None else (self.sellamt + other.sellamt)
+        fee_sum = None if self.fee is None or other.fee is None else (self.fee + other.fee)
+        
+        return Record(self.record_type, buyamt_sum, self.buycur,
+                      sellamt_sum, self.sellcur, fee_sum,
+                      self.fee_cur, self.exchange, group, comment, self.date, self.tx_id)
 
 
 if len(sys.argv) != 3:
