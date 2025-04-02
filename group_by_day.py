@@ -27,6 +27,7 @@ from decimal import Decimal
 
 
 class Record(object):
+    exchange_exceptions = ["Wallet", "Transaction"]  # E.g. don't process autoimported blockchain transactions
 
     def __init__(self, record_type, buyamt, buycur, sellamt, sellcur, fee, fee_cur, exchange, group, comment, date, tx_id):
         self.record_type = record_type
@@ -58,6 +59,9 @@ class Record(object):
         """
         Returns True if two records can be combined (same currencies, same venue, same date)
         """
+        # Check if the exchange contains any of the exception strings (case insensitive)
+        if any(exc.lower() in self.exchange.lower() for exc in self.exchange_exceptions):
+            return False  # They are not equal if the self exchange contains any exception string
 
         res = (self.record_type == other.record_type and
                self.buycur == other.buycur and
