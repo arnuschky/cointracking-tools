@@ -115,7 +115,9 @@ def process_csv(input_file, output_file):
                 previous = record
                 continue
 
-            if record == previous:
+            if record.record_type == "Lost" and record.exchange == "Binance" and "_fee" in record.tx_id:
+                continue # ignore redundant binance "lost" type fee
+            elif record == previous:
                 previous += record
                 continue
             else:
