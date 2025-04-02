@@ -58,8 +58,13 @@ class Record(object):
         """
         Returns True if two records can be combined (same currencies, same venue, same date)
         """
-        res = self.buycur == other.buycur and self.sellcur == other.sellcur and \
-            self.date.split(' ')[0] == other.date.split(' ')[0]  # Compare only the date part
+
+        res = (self.record_type == other.record_type and
+               self.buycur == other.buycur and
+               self.sellcur == other.sellcur and
+               self.exchange == other.exchange and
+               self.fee_cur == other.fee_cur and
+               self.date.split(' ')[0] == other.date.split(' ')[0])  # Compare only the date part
         return res
 
     def __add__(self, other):
@@ -71,12 +76,12 @@ class Record(object):
         comment = self.comment if self.comment else other.comment
         
         # Debugging: Print self and other if any of the amounts are None
-        if self.buyamt is None or other.buyamt is None:
-            print("Debug: self =", self, "other =", other, "buyamt is None")
-        if self.sellamt is None or other.sellamt is None:
-            print("Debug: self =", self, "other =", other, "sellamt is None")
-        if self.fee is None or other.fee is None:
-            print("Debug: self =", self, "other =", other, "fee is None")
+        # if self.buyamt is None or other.buyamt is None:
+        #     print("Debug: self =", self, "other =", other, "buyamt is None")
+        # if self.sellamt is None or other.sellamt is None:
+        #     print("Debug: self =", self, "other =", other, "sellamt is None")
+        # if self.fee is None or other.fee is None:
+        #     print("Debug: self =", self, "other =", other, "fee is None")
         
         # Set to None if either is None
         buyamt_sum = None if self.buyamt is None or other.buyamt is None else (self.buyamt + other.buyamt)
