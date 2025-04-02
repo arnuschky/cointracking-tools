@@ -39,7 +39,7 @@ class Record(object):
         self.exchange = exchange
         self.group = group
         self.comment = comment
-        self.date = date.strip().split(' ')[0]
+        self.date = date.strip()  # Store full date and time
         self.tx_id = tx_id
 
     def __str__(self):
@@ -59,7 +59,7 @@ class Record(object):
         Returns True if two records can be combined (same currencies, same venue, same date)
         """
         res = self.buycur == other.buycur and self.sellcur == other.sellcur and \
-            self.exchange == other.exchange and self.date == other.date
+            self.date.split(' ')[0] == other.date.split(' ')[0]  # Compare only the date part
         return res
 
     def __add__(self, other):
